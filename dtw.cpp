@@ -24,9 +24,9 @@ typedef int INF = 65535;
 /**
 * Dtw function that given two matrix of cep coefficient computes distance
 * between those two signals.
-*  @param n_ck      Dimension of unknow signal
-*  @param n_cunk    Dimension of know signal
-*  @param dim_mfcc  Size of nfcc decompostion base
+*  @param n_ck      Dimension of know signal
+*  @param n_cunk    Dimension of unknow signal
+*  @param dim_mfcc  Size of nfcc decomposition base
 *  @param c_k       Matrix of know signal
 *  @param c_unk     Matrix of unknow signal
 *  @return Distance between the two signals
@@ -34,37 +34,39 @@ typedef int INF = 65535;
 
 float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
 
-    //d vaut quoi ici ? dim_mffcc?
 
     int w0 = 1;
     int w2 = 1;
     int w3 = 1;
 
+    int _I = n_ck+1;
+    int _J = n_cunk+1;
 
 
-    vector<int> I;//A Initialiser (c_k)
-    vector<int> J;//A Initialiser (c_unk)
+    float g[_I * _J];
+    g[0] = 0;
 
 
-
-    vector<int><int> g;
-    g[0][0] = INF;
-
-
-    for(int j = 1; j < J.size(); ++j){
-        g[0][j] = INF;
+    //Premiere colonne a INF
+    for(int j = 1; j < _J; ++j){
+        g[j*n_ck] = INF;
     }
 
 
-    for(int i = 1; j < I.size(); ++j){
-        g[i][0] = INF;
+    for(int i = 1; i < _I; ++i){
+        //Premiere ligne a INF
+        g[i] = INF;
 
-        for(int j = 1; j < J.size(); ++j){
-            g[i,j] = min(g[i-1][j]+w0*d, g[i-1][j-1]+w1*d, g[i][j-1]+w2*d);
+        for(int j = 1; j < _J; ++j){
+            int d = abs(c_k[i-1], c_unk[j-1]);
+
+            g[i+j*_I] = min(g[(i-1)+j * n_ck] + w0 * d,
+                              g[(i-1)+(j-1) * n_ck] + w1 * d,
+                         g[i + (j-1) * n_ck] + w2 * d);
         }
     }
-    return g[I][J]/(I+J);
 
+    return g[(_I*_J)-1]/(n_ck + n_cunk);
 
 /* Code matlab
 
