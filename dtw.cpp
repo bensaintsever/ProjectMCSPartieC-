@@ -15,6 +15,7 @@
 #include <iostream>
 #include "dtw.h"
 #include <cmath>
+
 using namespace std;
 
 int INF = 65535;
@@ -30,112 +31,47 @@ int INF = 65535;
 *  @return Distance between the two signals
 */
 
-float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
+float dtw(int n_ck, int n_cunk, int dim_mfcc, float *c_k, float *c_unk) {
 
 
     int w0 = 1;
     int w1 = 1;
     int w2 = 1;
 
-    int _I = n_ck+1;
-    int _J = n_cunk+1;
+    int _I = n_ck + 1; //10
+    int _J = n_cunk + 1; //7
 
 
     float g[_I * _J];
     g[0] = 0;
 
-
-    //Premiere colonne a INF
-    for(int j = 1; j < _J; ++j){
-        g[j*_I] = INF;
+    //Premiere ligne a INF
+    for (int j = 1; j < _I; ++j) {
+        g[j * _J] = INF;
     }
 
-
-    for(int i = 1; i < _I; ++i){
-        //Premiere ligne a INF
+    //TRAITEMENT COLONNE
+    for (int i = 1; i < _J; ++i) {
+        //Premier element Colonne a INF
         g[i] = INF;
 
-        for(int i = 0; i < _I; i++){
-
-            for(int j = 0; j < _J; ++j){
-                cout<<g[i+j*_I]<<" ";
-            }
-            cout<<endl;
-        }
-        cout<<endl;
-        cout<<endl;
-
-        for(int j = 1; j < _J; ++j){
-            int d = abs(c_unk[j-1]-c_k[i-1]);
-            cout<<"Valeur de d : "<<d<<endl;
-            cout<<"Valeur de c_unk[j-1] : "<<c_unk[j-1]<<endl;
-            cout<<"Valeur de ck[i-1] : "<<c_k[i-1]<<endl;
-
-
-            g[i+j*_I] = min(
-                    min(g[(i-1) + j * n_ck] + w0 * d, g[(i-1) + (j-1) * n_ck] + w1 * d),
-                    g[i + (j-1) * n_ck] + w2 * d);
-            //cout<<g[i+j*_I]<<endl;
-
+        //TRAITEMENT PAR LIGNE
+        for (int j = 1; j < _I; ++j) {
+            int d = abs(c_unk[i - 1] - c_k[j - 1]);
+            g[i + j * _J] = min(
+                    min(g[(i - 1) + j * _J] + w0 * d, g[(i - 1) + (j - 1) * _J] + w1 * d),
+                    g[i + (j - 1) * _J] + w2 * d);
         }
     }
 
-    for(int i = 0; i < _I; i++){
+    for (int i = 0; i < _J; i++) {
 
-        for(int j = 0; j < _J; ++j){
-            cout<<g[i+j*_I]<<" ";
+        for (int j = 0; j < _I; ++j) {
+            cout << g[i + j * _J] << " ";
         }
-        cout<<endl;
+        cout << endl;
     }
-    return g[(_I*_J)-1]/(n_ck + n_cunk);
 
-/* Code matlab
-
-
-    I = size(sequence1,2);
-    J = size(sequence2,2);
-
-    g = zeros(I+1, J+1);
-    chemins = zeros(I, J);
-    if dDiagonale < abs(I-J)+1,
-        dDiagonale = abs(I-J)+1;
-        'Erreur : dDiagonale trop petite'
-    end
-    %g(1,1) = 0
-    for j=2:J+1,
-        g(1,j) = +inf;
-    end
-    for i=2:I+1,
-        g(i,1) = +inf;
-        for j=2:J+1,
-            if j-i < dDiagonale && i-j < dDiagonale,
-                d = feval(distance, sequence1, sequence2, i-1, j-1);
-                g(i,j) = min([g(i-1,j)+w0*d , g(i-1,j-1)+w1*d , g(i,j-1)+w2*d]);
-            else
-                g(i,j) = +inf;
-            end
-
-            %marquage de +1000 si on vient du haut, -1000 si on vient de
-            %la gauche
-            if g(i,j) == g(i-1,j-1)+w1*d,
-                chemins(i-1,j-1) = 1;
-            else
-                if g(i,j) == g(i, j-1)+w2*d,
-                    chemins(i-1,j-1) = 2;
-                else
-                    if g(i,j) == g(i-1, j) + w0 * d,
-                        chemins(i-1,j-1) = 0;
-                    end
-                end
-            end
-        end
-    end
-    %g
-    %AfficheChemin(chemins, g)
-    D=g(I+1,J+1)/(I+J);
-end
-        */
-
-
-
+    return g[(_I * _J) - 1] / (n_ck + n_cunk);
 }
+
