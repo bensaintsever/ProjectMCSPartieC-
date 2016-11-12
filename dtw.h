@@ -1,3 +1,7 @@
+#ifndef PROJETDTW_DTW_H
+#define PROJETDTW_DTW_H
+
+#endif //PROJETDTW_DTW_H
 /*******************************************************************************
  *
  * Drone control through voice recognition -- PC to drone communication
@@ -6,8 +10,8 @@
  * @author Tom Lucas, Grégoire Todeschi
  *
  ******************************************************************************/
- #pragma once
- 
+#pragma once
+
 /**
 
 * Dtw function that given two matrix of cep coefficient computes distance

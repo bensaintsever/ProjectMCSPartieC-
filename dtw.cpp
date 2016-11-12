@@ -14,12 +14,10 @@
 #include <math.h>
 #include <iostream>
 #include "dtw.h"
-#include <vecto>
 #include <cmath>
-#include <cfloat>
 using namespace std;
 
-typedef int INF = 65535;
+int INF = 65535;
 
 /**
 * Dtw function that given two matrix of cep coefficient computes distance
@@ -36,8 +34,8 @@ float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
 
 
     int w0 = 1;
+    int w1 = 1;
     int w2 = 1;
-    int w3 = 1;
 
     int _I = n_ck+1;
     int _J = n_cunk+1;
@@ -49,7 +47,7 @@ float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
 
     //Premiere colonne a INF
     for(int j = 1; j < _J; ++j){
-        g[j*n_ck] = INF;
+        g[j*_I] = INF;
     }
 
 
@@ -57,15 +55,38 @@ float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
         //Premiere ligne a INF
         g[i] = INF;
 
-        for(int j = 1; j < _J; ++j){
-            int d = abs(c_k[i-1], c_unk[j-1]);
+        for(int i = 0; i < _I; i++){
 
-            g[i+j*_I] = min(g[(i-1)+j * n_ck] + w0 * d,
-                              g[(i-1)+(j-1) * n_ck] + w1 * d,
-                         g[i + (j-1) * n_ck] + w2 * d);
+            for(int j = 0; j < _J; ++j){
+                cout<<g[i+j*_I]<<" ";
+            }
+            cout<<endl;
+        }
+        cout<<endl;
+        cout<<endl;
+
+        for(int j = 1; j < _J; ++j){
+            int d = abs(c_unk[j-1]-c_k[i-1]);
+            cout<<"Valeur de d : "<<d<<endl;
+            cout<<"Valeur de c_unk[j-1] : "<<c_unk[j-1]<<endl;
+            cout<<"Valeur de ck[i-1] : "<<c_k[i-1]<<endl;
+
+
+            g[i+j*_I] = min(
+                    min(g[(i-1) + j * n_ck] + w0 * d, g[(i-1) + (j-1) * n_ck] + w1 * d),
+                    g[i + (j-1) * n_ck] + w2 * d);
+            //cout<<g[i+j*_I]<<endl;
+
         }
     }
 
+    for(int i = 0; i < _I; i++){
+
+        for(int j = 0; j < _J; ++j){
+            cout<<g[i+j*_I]<<" ";
+        }
+        cout<<endl;
+    }
     return g[(_I*_J)-1]/(n_ck + n_cunk);
 
 /* Code matlab
@@ -115,6 +136,6 @@ float dtw(int n_ck, int n_cunk, int dim_mfcc, float* c_k, float* c_unk) {
 end
         */
 
-    
-    
+
+
 }

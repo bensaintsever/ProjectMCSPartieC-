@@ -9,30 +9,30 @@
 #pragma once
 #include <stdint.h> // for int16_t and int32_t
 #include <iostream>
- 
- /** Functions use to convert a WAVE file to mfcc coefficient
- *
- * @file
- */
- 
- /**
- * Structure for the header of a Wave file
- *
- **/
+
+/** Functions use to convert a WAVE file to mfcc coefficient
+*
+* @file
+*/
+
+/**
+* Structure for the header of a Wave file
+*
+**/
 struct wavfile
 {
-	char        id[4];          // should always contain "RIFF"
-	int     totallength;    // total file length minus 8
-	char        wavefmt[8];     // should be "WAVEfmt "
-	int     format;         // 16 for PCM format
-	short     pcm;            // 1 for PCM format
-	short     channels;       // channels
-	int     frequency;      // sampling frequency
-	int     bytes_per_second; // Number of bytes per seconde
-	short     bytes_by_capture; // Number of bytes by capture
-	short     bits_per_sample; // Number of bits per sample
-	char        data[4];        // should always contain "data"
-	int     bytes_in_data; // Data of the file
+    char        id[4];          // should always contain "RIFF"
+    int     totallength;    // total file length minus 8
+    char        wavefmt[8];     // should be "WAVEfmt "
+    int     format;         // 16 for PCM format
+    short     pcm;            // 1 for PCM format
+    short     channels;       // channels
+    int     frequency;      // sampling frequency
+    int     bytes_per_second; // Number of bytes per seconde
+    short     bytes_by_capture; // Number of bytes by capture
+    short     bits_per_sample; // Number of bits per sample
+    char        data[4];        // should always contain "data"
+    int     bytes_in_data; // Data of the file
 };
 
 /**
