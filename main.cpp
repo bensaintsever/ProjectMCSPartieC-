@@ -1,8 +1,14 @@
 #include <iostream>
 #include "dtw.h"
+#include "WavToMfcc.h"
+#include <string>
+#include <cstring>
+#include <stdlib.h>
+
+
+using namespace std;
 
 int main() {
-
 
     float sequence1[9];
     float sequence2[6];
@@ -25,50 +31,95 @@ int main() {
     sequence2[4] = 9.0;
     sequence2[5] = -2.0;
 
+    float res = dtw(9, 6, 0, sequence1, sequence2);
 
-    std::cout << dtw(9, 6, 0, sequence1, sequence2) << std::endl;
+    std::cout << std::to_string(res) << std::endl;
 
 
     /*Seconde partie*/
 
-    //LECTURE AUDIO ( enregistrer les sons sur l'applications puis les lires ici)
+    string chemin = "/corpus/dronevolant_nonbruite/";
+    int nbmots = 13;
+    string vocabulaire[nbmots]={"arretetoi", "atterrissage", "avance", "decollage", "droite", "etatdurgence", "faisunflip", "gauche", "plusbas", "plushaut", "recule", "tournedroite", "tournegauche"};
 
-    //Transformer le signal ? (avec la transformé de fourier : fft)
-    //FFTReal(const long length);
-
-    /*==========================================================================*/
-    /*      Name: do_fft                                                        */
-    /*      Description: Compute the FFT of the array.                          */
-    /*      Input parameters:                                                   */
-    /*        - x: pointer on the source array (time).                          */
-    /*      Output parameters:                                                  */
-    /*        - f: pointer on the destination array (frequencies).              */
-    /*             f [0...length(x)/2] = real values,                           */
-    /*             f [length(x)/2+1...length(x)-1] = imaginary values of        */
-    /*               coefficents 1...length(x)/2-1.                             */
-    /*      Throws: Nothing                                                     */
-    /*==========================================================================*/
-
-    //FFTReal::do_fft(flt_t f[], const flt_t x[]) const
+    string locuteur = "M01";
+    string nomfichier;
 
 
+    FILE** refFILE [nbmots];
+    wavfile* header_fichier[nbmots];
 
-    /**
-* Compute MFCC of a signal
-*
-* @param X_mfcc (OUT) Adress of a buffer to store MFCC coefficient
-* @param length_xmfcc (OUT) Pointer to the length of the buffer
-* @param x (IN) The signal to process
-* @param Nx The (IN) length of the signal
-* @param header (IN) wave header structure
-* @param frame_length (IN) Frame length
-* @param frame_step (IN) Step between each frame to allow overlapping. 160frame step = 10ms frames
-* @param dim_mfcc (IN) Number of MFCC coefficient kept
-* @param num_filter (IN) Number of filter for the mfcc algorithm
-* @return none
-*/
-    //computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int frame_length, int frame_step,
-      //               int dim_mfcc, int num_filter);
+    char* c_mfcName[nbmots];
+
+    /* VARIABLES PARAMETRISATION */
+    struct parametrisation{
+        float* X_mfcc;
+        int length_xmfcc;
+    };
+    struct parametrisation par;
+
+
+    for (int mot = 0; mot < nbmots; ++mot){
+        nomfichier = chemin + locuteur + "_" + vocabulaire[mot] + ".wav";
+        char* c_nomfichier = new char[nomfichier.length() + 1];
+        strcpy(c_nomfichier, nomfichier.c_str());
+
+        /** LECTURE **/
+        wavRead(refFILE[mot], c_nomfichier, header_fichier[mot]);
+
+
+        /* Deplacement du curseur après l'entete wav, directement sur les données (44 octets d'entete) */
+        fseek(refFILE[mot],SEEK_SET, sizeof(struct wavfile));
+
+
+        int nbreOctetsAudio = header_fichier[mot]->bytes_in_data;
+        int nbreOctetsRestant = nbreOctetsAudio;
+        char *buffer = new char[nbreOctetsAudio];
+        int16_t donnee[nbreOctetsAudio];
+        int indice = 0;
+
+        /** LECTURE ET COPIE DES DONNEES AUDIO **/
+        while(fread(buffer, sizeof(int16_t),1,refFILE[mot]) > 0 && (nbreOctetsRestant > 0)){
+            donnee[indice] = buffer[indice];
+            indice++;
+            nbreOctetsRestant--;
+        }
+
+        /** REMOVE SILENCE **/
+
+        int16_t* signalSansSilence;
+        int taille_signal;
+        float threshold = 1/100; //Sensibilité de détection du silence
+        removeSilence(donnee,nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
+
+
+
+        /* fichier en mfc A quoi cela peut il servir ?
+         * nameWavToMfc(c_nomfichier, c_mfcName);
+         */
+
+
+        /** PARAMETRISATION **/
+
+        /* IMPLEMENTATION BASE SUR UNE SOURCE */
+        computeMFCC(&par.X_mfcc, &par.length_xmfcc, signalSansSilence, nbreOctetsAudio, header_fichier[mot]->frequency,
+                    512, 256, 13, 26 );
+        //computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int frame_length, int frame_step,
+        //               int dim_mfcc, int num_filter);
+
+
+
+        delete [] c_nomfichier;
+
+    }
+
+
+    string hypotheses[12]={"M02","M03","M04","M05","M06","M07","M08", "M09", "M10", "M11", "M12", "M13"};
+
+
+
+
+
 
         return 0;
 }

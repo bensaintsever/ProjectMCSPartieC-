@@ -33,7 +33,7 @@ int is_big_endian(void) {
     union {
         uint32_t i;
         char c[4];
-    } bint = { 0x01000000 };
+    } bint = {0x01000000};
     return bint.c[0] == 1;
 }
 
@@ -66,8 +66,7 @@ void wavRead(FILE **p_wav, char *filename, wavfile *p_header) {
             fprintf(stderr, "ERROR: %s is not a big endian wav file\n", filename);
             exit(1);
         }
-    }
-    else {
+    } else {
         if (memcmp((*p_header).id, "RIFF", 4) != 0) {
             fprintf(stderr, "ERROR: %s is not a little endian wav file\n", filename);
             exit(1);
@@ -97,7 +96,7 @@ void wavRead(FILE **p_wav, char *filename, wavfile *p_header) {
 * @param mfcName OUT) pointer to the new name of the file with .mfc ext
 * @return none
 */
-void nameWavToMfc(char *filename, char * mfcName) {
+void nameWavToMfc(char *filename, char *mfcName) {
     int i = 0;
     // Copy the name
     while (filename[i] != '.') {
@@ -122,12 +121,12 @@ void nameWavToMfc(char *filename, char * mfcName) {
 * @param threshold (IN) for the sensibility (silence detection)
 * @return The signal without silence
 */
-void removeSilence(int16_t * x, int Nx, int16_t ** xFiltered, int * newLength, float threshold) {
+void removeSilence(int16_t *x, int Nx, int16_t **xFiltered, int *newLength, float threshold) {
     float xMin = INFINITY;
     float xMax = 0;
-    float * x_abs = new float[Nx];
+    float *x_abs = new float[Nx];
     for (int l = 0; l < Nx; l++) {
-        x_abs[l] = (float)((x[l] < 0) ? -x[l] : x[l]);
+        x_abs[l] = (float) ((x[l] < 0) ? -x[l] : x[l]);
         xMin = ((x_abs[l] < xMin) ? x_abs[l] : xMin);
         xMax = ((x_abs[l] > xMax) ? x_abs[l] : xMax);
     }
@@ -136,7 +135,7 @@ void removeSilence(int16_t * x, int Nx, int16_t ** xFiltered, int * newLength, f
     float tmp;
     for (int l = 0; l < Nx; l++) {
         tmp = (x_abs[l] - xMin) / xMax;
-        e[l] = tmp*tmp;
+        e[l] = tmp * tmp;
     }
     int firstVal = 0;
     while (firstVal < Nx && e[firstVal++] < threshold) {}
@@ -172,8 +171,10 @@ void removeSilence(int16_t * x, int Nx, int16_t ** xFiltered, int * newLength, f
 * @param num_filter (IN) Number of filter for the mfcc algorithm
 * @return none
 */
-void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int frame_length, int frame_step, int dim_mfcc, int num_filter) {
-    int power2of_sample = (int)powf(2.0, ceilf(logf((float)frame_length) / logf(2.0f))); // Smallest power of 2 > to frame_length
+void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int frame_length, int frame_step,
+                 int dim_mfcc, int num_filter) {
+    int power2of_sample = (int) powf(2.0, ceilf(logf((float) frame_length) /
+                                                logf(2.0f))); // Smallest power of 2 > to frame_length
     int n_frames;
     if (Nx > power2of_sample) {
         //n_frames = (int)ceil((float)fmax((Nx - power2of_sample), 0) / (float)frame_step); // Number of frames - 1 (Because array starts at 0)
@@ -182,19 +183,18 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
             // In this case Nx-power2of_sample is a multiple of frame_step -> +1 was wrong
             n_frames--;
         }
-    }
-    else {
+    } else {
         n_frames = 0;
     }
-    int nb_fft_kept = power2of_sample;	// Number of MFCC coefficient kept
+    int nb_fft_kept = power2of_sample;    // Number of MFCC coefficient kept
     float *han_window = new float[power2of_sample];
 
     // Memory allocation
     //FFTReal::flt_t	* const	X = new FFTReal::flt_t[power2of_sample];
     //FFTReal::flt_t * const fX_abs = new FFTReal::flt_t[nb_fft_kept];
-    *X_mfcc = new float[dim_mfcc*(n_frames + 1)];
+    *X_mfcc = new float[dim_mfcc * (n_frames + 1)];
     *length_xmfcc = n_frames + 1;
-    float	img;
+    float img;
     int k, i, m;
     float xnorm = 0;// Norm of the signal
     float xmean = 0;
@@ -205,8 +205,8 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
     xmean = xmean / Nx;
 
     for (k = 0; k < Nx; k++) {
-        x[k] -= (int16_t)xmean;
-        xnorm += x[k]*x[k];
+        x[k] -= (int16_t) xmean;
+        xnorm += x[k] * x[k];
     }
     xnorm = sqrt(xnorm / Nx);
 
@@ -220,9 +220,9 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
     }
 
     FFTReal fft(power2of_sample);
-    FFTReal::flt_t	* X = new FFTReal::flt_t[power2of_sample];
-    FFTReal::flt_t * fX_abs = new FFTReal::flt_t[nb_fft_kept];
-    FFTReal::flt_t	* fX = new FFTReal::flt_t[power2of_sample];
+    FFTReal::flt_t *X = new FFTReal::flt_t[power2of_sample];
+    FFTReal::flt_t *fX_abs = new FFTReal::flt_t[nb_fft_kept];
+    FFTReal::flt_t *fX = new FFTReal::flt_t[power2of_sample];
     //#pragma omp parallel for private(k,m,i,img) shared(han_window)
     for (k = 0; k <= n_frames; k++) {
         //FFTReal::flt_t	* X = new FFTReal::flt_t[power2of_sample];
@@ -231,21 +231,17 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
 
         // Store the corresponding frame from the signal normalised into X
         if (k < n_frames) {
-            for (i = 0; i < power2of_sample; i++)
-            {
-                X[i] = han_window[i] * ((FFTReal::flt_t)x[k*frame_step + i] / xnorm);
+            for (i = 0; i < power2of_sample; i++) {
+                X[i] = han_window[i] * ((FFTReal::flt_t) x[k * frame_step + i] / xnorm);
             }
-        }
-        else {
-            for (i = frame_step*n_frames; i < Nx; i++)
-            {
+        } else {
+            for (i = frame_step * n_frames; i < Nx; i++) {
                 // Last values of the signal
-                X[i - frame_step*n_frames] = han_window[i - frame_step*n_frames] * ((FFTReal::flt_t)x[i] / xnorm);
+                X[i - frame_step * n_frames] = han_window[i - frame_step * n_frames] * ((FFTReal::flt_t) x[i] / xnorm);
             }
-            for (i = Nx; i < frame_step*n_frames + power2of_sample; i++)
-            {
+            for (i = Nx; i < frame_step * n_frames + power2of_sample; i++) {
                 // The frame is padded with 0
-                X[i - frame_step*n_frames] = (FFTReal::flt_t)0.0;
+                X[i - frame_step * n_frames] = (FFTReal::flt_t) 0.0;
             }
         }
 
@@ -257,7 +253,8 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
         //fft.rescale(X);
 
         // Compute norm of FFT
-        int nb_zero_padded = (frame_step*k + power2of_sample - Nx);// Used to weight the last window according to the number of zero padded
+        int nb_zero_padded = (frame_step * k + power2of_sample -
+                              Nx);// Used to weight the last window according to the number of zero padded
         if (nb_zero_padded < 1) {
             nb_zero_padded = 1;
         }
@@ -265,11 +262,9 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
             if (i > 0 && i < power2of_sample / 2) {
                 img = fX[i + power2of_sample / 2];
                 fX_abs[i] = (fX[i] * fX[i] + img * img) / nb_zero_padded;
-            }
-            else if (i == 0 || i == power2of_sample / 2) {
+            } else if (i == 0 || i == power2of_sample / 2) {
                 fX_abs[i] = (fX[i] * fX[i]) / nb_zero_padded;
-            }
-            else {
+            } else {
                 img = fX[3 * power2of_sample / 2 - i];
                 fX_abs[i] = (fX[power2of_sample - i] * fX[power2of_sample - i] + img * img) / nb_zero_padded;
             }
@@ -277,9 +272,9 @@ void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int freq
 
 
         // Compute MFCC coefficient
-        float * coefs = GetCoefficient(fX_abs, frequency, num_filter, nb_fft_kept, dim_mfcc);
+        float *coefs = GetCoefficient(fX_abs, frequency, num_filter, nb_fft_kept, dim_mfcc);
         for (m = 0; m < dim_mfcc; m++) {
-            (*X_mfcc)[k*dim_mfcc + m] = coefs[m];
+            (*X_mfcc)[k * dim_mfcc + m] = coefs[m];
         }
         //delete fX_abs, fX, X;
     }

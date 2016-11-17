@@ -22,8 +22,8 @@
 * m - The {0-m} MFCC coefficients to compute
 *
 */
-float * GetCoefficient(float* spectralData, unsigned int samplingRate, unsigned int NumFilters, unsigned int binSize, unsigned int m)
-{
+float *GetCoefficient(float *spectralData, unsigned int samplingRate, unsigned int NumFilters, unsigned int binSize,
+                      unsigned int m) {
     float *result = new float[m];
     float *outerSum = new float[m];
     float innerSum = 0.0f;
@@ -70,16 +70,12 @@ float * GetCoefficient(float* spectralData, unsigned int samplingRate, unsigned 
 * Computes the Normalization Factor (Equation 6)
 * Used for internal computation only - not to be called directly
 */
-float * NormalizationFactor(int NumFilters, int m)
-{
-    float * normalizationFactor = new float[m];
+float *NormalizationFactor(int NumFilters, int m) {
+    float *normalizationFactor = new float[m];
     for (int i = 0; i < m; i++) {
-        if (i == 0)
-        {
+        if (i == 0) {
             normalizationFactor[i] = sqrt(1.0f / NumFilters);
-        }
-        else
-        {
+        } else {
             normalizationFactor[i] = sqrt(2.0f / NumFilters);
         }
     }
@@ -91,31 +87,24 @@ float * NormalizationFactor(int NumFilters, int m)
 * Compute the filter parameter for the specified frequency and filter bands (Eq. 2)
 * Used for internal computation only - not the be called directly
 */
-float GetFilterParameter(unsigned int samplingRate, unsigned int binSize, unsigned int frequencyBand, unsigned int filterBand)
-{
+float GetFilterParameter(unsigned int samplingRate, unsigned int binSize, unsigned int frequencyBand,
+                         unsigned int filterBand) {
     float filterParameter = 0.0f;
 
-    float boundary = (float)(frequencyBand * samplingRate) / binSize;		// k * Fs / N
-    float prevCenterFrequency = GetCenterFrequency(filterBand - 1);		// fc(l - 1) etc.
+    float boundary = (float) (frequencyBand * samplingRate) / binSize;        // k * Fs / N
+    float prevCenterFrequency = GetCenterFrequency(filterBand - 1);        // fc(l - 1) etc.
     float thisCenterFrequency = GetCenterFrequency(filterBand);
     float nextCenterFrequency = GetCenterFrequency(filterBand + 1);
 
-    if (boundary >= 0 && boundary < prevCenterFrequency)
-    {
+    if (boundary >= 0 && boundary < prevCenterFrequency) {
         filterParameter = 0.0f;
-    }
-    else if (boundary >= prevCenterFrequency && boundary < thisCenterFrequency)
-    {
+    } else if (boundary >= prevCenterFrequency && boundary < thisCenterFrequency) {
         filterParameter = (boundary - prevCenterFrequency) / (thisCenterFrequency - prevCenterFrequency);
         filterParameter *= GetMagnitudeFactor(filterBand);
-    }
-    else if (boundary >= thisCenterFrequency && boundary < nextCenterFrequency)
-    {
+    } else if (boundary >= thisCenterFrequency && boundary < nextCenterFrequency) {
         filterParameter = (boundary - nextCenterFrequency) / (thisCenterFrequency - nextCenterFrequency);
         filterParameter *= GetMagnitudeFactor(filterBand);
-    }
-    else if (boundary >= nextCenterFrequency && boundary < samplingRate)
-    {
+    } else if (boundary >= nextCenterFrequency && boundary < samplingRate) {
         filterParameter = 0.0f;
     }
 
@@ -126,16 +115,12 @@ float GetFilterParameter(unsigned int samplingRate, unsigned int binSize, unsign
 * Compute the band-dependent magnitude factor for the given filter band (Eq. 3)
 * Used for internal computation only - not the be called directly
 */
-float GetMagnitudeFactor(unsigned int filterBand)
-{
+float GetMagnitudeFactor(unsigned int filterBand) {
     float magnitudeFactor = 0.0f;
 
-    if (filterBand >= 1 && filterBand <= 14)
-    {
+    if (filterBand >= 1 && filterBand <= 14) {
         magnitudeFactor = 0.015f;
-    }
-    else if (filterBand >= 15 && filterBand <= 48)
-    {
+    } else if (filterBand >= 15 && filterBand <= 48) {
         magnitudeFactor = 2.0f / (GetCenterFrequency(filterBand + 1) - GetCenterFrequency(filterBand - 1));
     }
 
@@ -148,21 +133,15 @@ float GetMagnitudeFactor(unsigned int filterBand)
 * center frequencies are equally spaced on the mel scale
 * Used for internal computation only - not the be called directly
 */
-float GetCenterFrequency(unsigned int filterBand)
-{
+float GetCenterFrequency(unsigned int filterBand) {
     float centerFrequency = 0.0f;
     float exponent;
 
-    if (filterBand == 0)
-    {
+    if (filterBand == 0) {
         centerFrequency = 0;
-    }
-    else if (filterBand >= 1 && filterBand <= 14)
-    {
+    } else if (filterBand >= 1 && filterBand <= 14) {
         centerFrequency = (200.0f * filterBand) / 3.0f;
-    }
-    else
-    {
+    } else {
         exponent = filterBand - 14.0f;
         centerFrequency = powf(1.0711703f, exponent);
         centerFrequency *= 1073.4f;

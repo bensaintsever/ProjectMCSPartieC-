@@ -7,6 +7,7 @@
  *
  ******************************************************************************/
 #pragma once
+
 #include <stdint.h> // for int16_t and int32_t
 #include <iostream>
 
@@ -19,20 +20,19 @@
 * Structure for the header of a Wave file
 *
 **/
-struct wavfile
-{
-    char        id[4];          // should always contain "RIFF"
-    int     totallength;    // total file length minus 8
-    char        wavefmt[8];     // should be "WAVEfmt "
-    int     format;         // 16 for PCM format
-    short     pcm;            // 1 for PCM format
-    short     channels;       // channels
-    int     frequency;      // sampling frequency
-    int     bytes_per_second; // Number of bytes per seconde
-    short     bytes_by_capture; // Number of bytes by capture
-    short     bits_per_sample; // Number of bits per sample
-    char        data[4];        // should always contain "data"
-    int     bytes_in_data; // Data of the file
+struct wavfile {
+    char id[4];          // should always contain "RIFF"
+    int totallength;    // total file length minus 8
+    char wavefmt[8];     // should be "WAVEfmt "
+    int format;         // 16 for PCM format
+    short pcm;            // 1 for PCM format
+    short channels;       // channels
+    int frequency;      // sampling frequency
+    int bytes_per_second; // Number of bytes per seconde
+    short bytes_by_capture; // Number of bytes by capture
+    short bits_per_sample; // Number of bits per sample
+    char data[4];        // should always contain "data"
+    int bytes_in_data; // Data of the file
 };
 
 /**
@@ -60,7 +60,7 @@ void wavRead(FILE **p_wav, char *filename, wavfile *p_header);
 * @param mfcName OUT) pointer to the new name of the file with .mfc ext
 * @return none
 */
-void nameWavToMfc(char *filename, char * mfcName);
+void nameWavToMfc(char *filename, char *mfcName);
 
 /**
 * Remove silence of the signal at the start and the end
@@ -72,7 +72,8 @@ void nameWavToMfc(char *filename, char * mfcName);
 * @param threshold (IN) for the sensibility (silence detection)
 * @return The signal without silence
 */
-void removeSilence(int16_t * x, int Nx, int16_t ** xFiltered, int * newLength, float threshold);
+void removeSilence(int16_t *x, int Nx, int16_t **xFiltered, int *newLength, float threshold);
+
 /**
 * Compute MFCC of a signal
 *
@@ -87,4 +88,6 @@ void removeSilence(int16_t * x, int Nx, int16_t ** xFiltered, int * newLength, f
 * @param IN int num_filter Number of filter for the mfcc algorithm
 * @return none
 */
-void computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int sample_length, int sample_step, int dim_mfcc, int num_filter);
+void
+computeMFCC(float **X_mfcc, int *length_xmfcc, int16_t *x, int Nx, int frequency, int sample_length, int sample_step,
+            int dim_mfcc, int num_filter);
