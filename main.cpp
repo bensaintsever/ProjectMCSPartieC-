@@ -60,7 +60,7 @@ int main() {
     ***********  Reconnaisance vocale  **********
     ********************************************/
 
-    //FILE **refFILE;
+
     wavfile header_fichier[nbmots];
     struct parametrisation ref[1]; //1 le nombre de locuteur de ref
     string locuteur = "M01";
@@ -78,78 +78,28 @@ int main() {
         wavRead(&refFILE, c_nomfichier, &header_fichier[mot]);
 
 
-        /* Deplacement du curseur après l'entete wav, directement sur les données (44 octets d'entete) */
-        //fseek(refFILE, SEEK_SET, sizeof(struct wavfile));
-
-
         int nbreOctetsAudio = header_fichier[mot].bytes_in_data;
-        int nbreOctetsRestant = nbreOctetsAudio;
-        int16_t *buffer = new int16_t[nbreOctetsAudio + sizeof(struct wavfile)];
-        int16_t donnee[nbreOctetsAudio];
-        int indice = 0;
+        int16_t *buffer = new int16_t[nbreOctetsAudio];
 
+        fread(buffer, sizeof(int16_t), nbreOctetsAudio, refFILE);
 
-
-        if (mot == 0) {
-            //FILE* fichierALire;
-            FILE* fichierAEcrire;
-            fichierAEcrire = fopen(
-                    "/Users/benjamin.saint-sever/Documents/Education/Master 1.2/Semestre 1/MCS/ProjectMCSPartieC-/test",
-                    "w");
-            if (fichierAEcrire == NULL) {
-                cerr<<"pb allocation"<<endl;
-            }
-            /*fichierALire = fopen(c_nomfichier, "rb+");
-            if (fichierALire == NULL) {
-                cerr<<"pb allocation"<<endl;
-            }*/
-
-            /** LECTURE ET COPIE DES DONNEES AUDIO **/
-            while (int nblu = fread(buffer, sizeof(int16_t), 1, refFILE) > 0 && (nbreOctetsRestant > 0)) {
-                fwrite(buffer,sizeof(int16_t),nblu,fichierAEcrire);
-
-
-                donnee[indice] = buffer[indice];
-
-                indice++;
-                nbreOctetsRestant--;
-            }
-
-
-            fclose(fichierAEcrire);
-            //fclose(fichierALire);
-        }
-
-
-      /*  if (mot > 0) {
-        /** LECTURE ET COPIE DES DONNEES AUDIO **/
-      /*  while (fread(buffer, sizeof(int16_t), 1, refFILE) > 0 && (nbreOctetsRestant > 0)) {
-
-
-            //donnee[indice] = buffer[indice];
-
-            indice++;
-            nbreOctetsRestant--;
-        }
-        cout << buffer << endl;
-    }*/
 
         /** REMOVE SILENCE **/
 
-       /* int16_t *signalSansSilence;
+        int16_t *signalSansSilence;
         int taille_signal;
         float threshold = 1 / 100; //Sensibilité de détection du silence
-        removeSilence(donnee, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
-
+        removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
+        
 
 
         /** PARAMETRISATION **/
 
         /* IMPLEMENTATION BASE SUR UNE SOURCE */
-      /*  computeMFCC(&ref[0].X_mfcc, &ref[0].length_xmfcc, signalSansSilence, nbreOctetsAudio,
+        computeMFCC(&ref[0].X_mfcc, &ref[0].length_xmfcc, signalSansSilence, nbreOctetsAudio,
                     header_fichier[mot].frequency,
                     512, 256, 13, 26);
-*/
+
 
         delete[] c_nomfichier;
 
@@ -169,7 +119,7 @@ int main() {
         locuteur = hypotheses[noLocuteur];
         for (int mot = 1; mot < nbmots; ++mot) {
 
-            FILE **ref_FILE[nbmots];
+            FILE *ref_FILE[nbmots];
             wavfile *head_file[nbmots];
 
             /** Fichiers de reférences **/
@@ -179,32 +129,21 @@ int main() {
                 strcpy(c_nomfichier, nomfichier.c_str());
 
                 /** LECTURE **/
-                wavRead(ref_FILE[mot], c_nomfichier, head_file[mot]);
-
-
-                /* Deplacement du curseur après l'entete wav, directement sur les données (44 octets d'entete) */
-                fseek(*ref_FILE[mot], SEEK_SET, sizeof(struct wavfile));
-
+                wavRead(&ref_FILE[mot], c_nomfichier, head_file[mot]);
 
                 int nbreOctetsAudio = head_file[mot]->bytes_in_data;
-                int nbreOctetsRestant = nbreOctetsAudio;
-                char *buffer = new char[nbreOctetsAudio];
-                int16_t donnee[nbreOctetsAudio];
-                int indice = 0;
+                int16_t *buffer = new int16_t[nbreOctetsAudio];
 
                 /** LECTURE ET COPIE DES DONNEES AUDIO **/
-                while (fread(buffer, sizeof(int16_t), 1, *ref_FILE[mot]) > 0 && (nbreOctetsRestant > 0)) {
-                    donnee[indice] = buffer[indice];
-                    indice++;
-                    nbreOctetsRestant--;
-                }
+                fread(buffer, sizeof(int16_t), nbreOctetsAudio, ref_FILE[mot]);
+
 
                 /** REMOVE SILENCE **/
 
                 int16_t *signalSansSilence;
                 int taille_signal;
                 float threshold = 1 / 100; //Sensibilité de détection du silence
-                removeSilence(donnee, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
+                removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
 
 
 
