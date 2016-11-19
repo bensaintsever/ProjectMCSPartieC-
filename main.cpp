@@ -196,9 +196,10 @@ int main() {
     }
 
     /** AFFICHAGE MATRICE DE CONFUSION **/
-    for (int i = 0; i < sizeof(matriceConfusion); ++i) {
-        for (int j = 0; j < sizeof(matriceConfusion[i]); ++j)
-            cout << matriceConfusion[i][j] << endl;
+    for (int j = 0; j < nbmots; ++j) {
+        for (int i = 0; i < nbmots; ++i)
+            cout << matriceConfusion[i][j] << " ";
+        cout<<""<<endl;
     }
 
     return 0;
