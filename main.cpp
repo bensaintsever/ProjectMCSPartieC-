@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 
-
 using namespace std;
 
 string chemin = "/Users/benjamin.saint-sever/Documents/Education/Master 1.2/Semestre 1/MCS/ProjectMCSPartieC-/corpus/dronevolant_nonbruite/";
@@ -53,7 +52,7 @@ int main() {
 
     float res = dtw(9, 6, 0, sequence1, sequence2);
 
-    cout << to_string(res) <<endl;
+    cout << to_string(res) << endl;
 
 
     /********************************************
@@ -62,7 +61,7 @@ int main() {
 
 
     wavfile header_fichier[nbmots];
-    struct parametrisation ref[1]; //1 le nombre de locuteur de ref
+    struct parametrisation ref[nbmots];
     string locuteur = "M01";
 
     /** Fichiers de reférences **/
@@ -82,7 +81,7 @@ int main() {
         int16_t *buffer = new int16_t[nbreOctetsAudio];
 
         fread(buffer, sizeof(int16_t), nbreOctetsAudio, refFILE);
-
+        fclose(refFILE);
 
         /** REMOVE SILENCE **/
 
@@ -90,13 +89,12 @@ int main() {
         int taille_signal;
         float threshold = 1 / 100; //Sensibilité de détection du silence
         removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
-        
 
 
         /** PARAMETRISATION **/
 
         /* IMPLEMENTATION BASE SUR UNE SOURCE */
-        computeMFCC(&ref[0].X_mfcc, &ref[0].length_xmfcc, signalSansSilence, nbreOctetsAudio,
+        computeMFCC(&ref[mot].X_mfcc, &ref[mot].length_xmfcc, signalSansSilence, nbreOctetsAudio,
                     header_fichier[mot].frequency,
                     512, 256, 13, 26);
 
@@ -105,60 +103,66 @@ int main() {
 
     }
 
-
     int nbLocuteur = 12;
     string hypotheses[nbLocuteur] = {"M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
                                      "M13"};
 
-    int** matriceConfusion;
-    int nbMotsRec = 0;
+    /***** INIT MATRICE CONFUSION *****/
+    int **matriceConfusion = new int *[nbmots];
+    for (int i = 0; i < nbmots; ++i)
+        matriceConfusion[i] = new int[nbmots];
 
-    struct parametrisation paramHyp[nbLocuteur];
+
+    for (int i = 0; i < nbmots; i++)
+        for (int j = 0; j < nbmots; j++)
+            matriceConfusion[i][j] = 0;
+    /**********************************/
+
+    int nbMotsRec = 0;
     for (int noLocuteur = 0; noLocuteur < nbLocuteur; ++noLocuteur) {
 
+        struct parametrisation paramHyp[nbmots];
         locuteur = hypotheses[noLocuteur];
-        for (int mot = 1; mot < nbmots; ++mot) {
-
-            FILE *ref_FILE[nbmots];
-            wavfile *head_file[nbmots];
-
-            /** Fichiers de reférences **/
-            for (int mot = 0; mot < nbmots; ++mot) {
-                string nomfichier = chemin + locuteur + "_" + vocabulaire[mot] + ".wav";
-                char *c_nomfichier = new char[nomfichier.length() + 1];
-                strcpy(c_nomfichier, nomfichier.c_str());
-
-                /** LECTURE **/
-                wavRead(&ref_FILE[mot], c_nomfichier, head_file[mot]);
-
-                int nbreOctetsAudio = head_file[mot]->bytes_in_data;
-                int16_t *buffer = new int16_t[nbreOctetsAudio];
-
-                /** LECTURE ET COPIE DES DONNEES AUDIO **/
-                fread(buffer, sizeof(int16_t), nbreOctetsAudio, ref_FILE[mot]);
 
 
-                /** REMOVE SILENCE **/
+        wavfile head_file[nbmots];
 
-                int16_t *signalSansSilence;
-                int taille_signal;
-                float threshold = 1 / 100; //Sensibilité de détection du silence
-                removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
+        /** Fichiers de reférences **/
+        for (int mot = 0; mot < nbmots; ++mot) {
+            FILE *ref_FILE;
+            string nomfichier = chemin + locuteur + "_" + vocabulaire[mot] + ".wav";
+            char *c_nomfichier = new char[nomfichier.length() + 1];
+            strcpy(c_nomfichier, nomfichier.c_str());
 
-
-
-                /** PARAMETRISATION **/
-
-                /* IMPLEMENTATION BASE SUR UNE SOURCE */
-                computeMFCC(&paramHyp[mot].X_mfcc, &paramHyp[mot].length_xmfcc, signalSansSilence, nbreOctetsAudio,
-                            head_file[mot]->frequency,
-                            512, 256, 13, 26);
+            /** LECTURE **/
+            wavRead(&ref_FILE, c_nomfichier, &head_file[mot]);
 
 
-                delete[] c_nomfichier;
+            int nbreOctetsAudio = head_file[mot].bytes_in_data;
+            int16_t *buffer = new int16_t[nbreOctetsAudio];
 
-            }
+            /** LECTURE ET COPIE DES DONNEES AUDIO **/
+            fread(buffer, sizeof(int16_t), nbreOctetsAudio, ref_FILE);
+            fclose(ref_FILE);
 
+            /** REMOVE SILENCE **/
+
+            int16_t *signalSansSilence;
+            int taille_signal;
+            float threshold = 1 / 100; //Sensibilité de détection du silence
+            removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
+
+
+
+            /** PARAMETRISATION **/
+
+            /* IMPLEMENTATION BASE SUR UNE SOURCE */
+            computeMFCC(&paramHyp[mot].X_mfcc, &paramHyp[mot].length_xmfcc, signalSansSilence, nbreOctetsAudio,
+                        head_file[mot].frequency,
+                        512, 256, 13, 26);
+
+
+            delete[] c_nomfichier;
 
         }
 
@@ -175,15 +179,15 @@ int main() {
             //A la recherche du min de dMots
             float motMin = 0.0;
             int motRec = 0;
-            for(int i = 0; i < nbmots-1; ++i ){
-                if (dMots[i] < motMin){
+            for (int i = 0; i < nbmots - 1; ++i) {
+                if (dMots[i] < motMin) {
                     motMin = dMots[i];
                     motRec = i;
                 }
             }
-            matriceConfusion[motRef][motRec] = matriceConfusion[motRef][motRec]+1;
-            if(motRef == motRec)
-                nbMotsRec = nbMotsRec+1;
+            matriceConfusion[motRef][motRec] = matriceConfusion[motRef][motRec] + 1;
+            if (motRef == motRec)
+                nbMotsRec = nbMotsRec + 1;
 
 
         }
@@ -192,9 +196,9 @@ int main() {
     }
 
     /** AFFICHAGE MATRICE DE CONFUSION **/
-    for(int i = 0; i < sizeof(matriceConfusion); ++i){
-        for(int j = 0; j < sizeof(matriceConfusion[i]); ++j)
-            cout<< matriceConfusion[i][j]<<endl;
+    for (int i = 0; i < sizeof(matriceConfusion); ++i) {
+        for (int j = 0; j < sizeof(matriceConfusion[i]); ++j)
+            cout << matriceConfusion[i][j] << endl;
     }
 
     return 0;
