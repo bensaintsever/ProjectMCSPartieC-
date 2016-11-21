@@ -57,7 +57,7 @@ int main() {
 
     float res = dtw(9, 6, 0, sequence1, sequence2);
 
-    cout << "distance :"<<to_string(res) << endl;
+    cout << "test dtw : distance :"<<to_string(res) << endl;
 
 
     /********************************************
@@ -175,7 +175,6 @@ int main() {
 
         for (int motRef = 0; motRef < nbmots; ++motRef) {
 
-            //Dmots = zeros(1,nbmots); ?
             float *dMots = new float[nbmots];
             for (int motHyp = 0; motHyp < nbmots; ++motHyp) {
                 float distance = dtw(paramHyp[motHyp].length_xmfcc, ref[motRef].length_xmfcc, 13,
