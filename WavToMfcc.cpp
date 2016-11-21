@@ -22,6 +22,7 @@
 #include "FFTReal.h"
 #include "WavToMfcc.h"
 #include <omp.h>
+#include <cstdlib>
 
 /**
 * Safety function to ensure the system use big endian

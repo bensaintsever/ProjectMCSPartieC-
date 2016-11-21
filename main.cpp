@@ -12,9 +12,14 @@ using namespace std;
 
 string chemin = "/Users/benjamin.saint-sever/Documents/Education/Master 1.2/Semestre 1/MCS/ProjectMCSPartieC-/corpus/dronevolant_nonbruite/";
 
-int nbmots = 13;
+/*int nbmots = 13;
 string vocabulaire[13] = {"arretetoi", "atterrissage", "avance", "decollage", "droite", "etatdurgence", "faisunflip",
                           "gauche", "plusbas", "plushaut", "recule", "tournedroite", "tournegauche"};
+*/
+int nbmots = 2;
+string vocabulaire[2] = {"arretetoi", "atterrissage"/*, "avance", "decollage", "droite", "etatdurgence", "faisunflip",
+                          "gauche", "plusbas", "plushaut", "recule", "tournedroite", "tournegauche"*/ };
+
 
 
 /** VARIABLES PARAMETRISATION **/
@@ -52,7 +57,7 @@ int main() {
 
     float res = dtw(9, 6, 0, sequence1, sequence2);
 
-    cout << to_string(res) << endl;
+    cout << "distance :"<<to_string(res) << endl;
 
 
     /********************************************
@@ -87,7 +92,7 @@ int main() {
 
         int16_t *signalSansSilence;
         int taille_signal;
-        float threshold = 1 / 100; //Sensibilité de détection du silence
+        float threshold = 10 / 100; //Sensibilité de détection du silence
         removeSilence(buffer, nbreOctetsAudio, &signalSansSilence, &taille_signal, threshold);
 
 
@@ -103,9 +108,9 @@ int main() {
 
     }
 
-    int nbLocuteur = 12;
-    string hypotheses[nbLocuteur] = {"M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
-                                     "M13"};
+    int nbLocuteur = 1;
+    string hypotheses[nbLocuteur] = {"M01"/*, "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
+                                     "M13"*/};
 
     /***** INIT MATRICE CONFUSION *****/
     int **matriceConfusion = new int *[nbmots];
@@ -161,6 +166,7 @@ int main() {
                         head_file[mot].frequency,
                         512, 256, 13, 26);
 
+            //cout << "taille :" <<paramHyp[mot].length_xmfcc<<endl;
 
             delete[] c_nomfichier;
 
@@ -168,18 +174,22 @@ int main() {
 
 
         for (int motRef = 0; motRef < nbmots; ++motRef) {
+
             //Dmots = zeros(1,nbmots); ?
             float *dMots = new float[nbmots];
             for (int motHyp = 0; motHyp < nbmots; ++motHyp) {
-                float distance = dtw(paramHyp[motHyp].length_xmfcc, ref[motRef].length_xmfcc, 0,
+                float distance = dtw(paramHyp[motHyp].length_xmfcc, ref[motRef].length_xmfcc, 13,
                                      paramHyp[motHyp].X_mfcc, ref[motRef].X_mfcc);
                 dMots[motHyp] = distance;
+
+                cout<<"Mot ref N°" << motRef<<endl;
+                cout<<"Mot hyp N°:"<<motHyp<<endl<<"distance entre eux :"<<dMots[motHyp]<<endl;
             }
 
             //A la recherche du min de dMots
-            float motMin = 0.0;
+            float motMin = dMots[0];
             int motRec = 0;
-            for (int i = 0; i < nbmots - 1; ++i) {
+            for (int i = 1; i < nbmots; ++i) {
                 if (dMots[i] < motMin) {
                     motMin = dMots[i];
                     motRec = i;
@@ -193,14 +203,18 @@ int main() {
         }
 
 
+
     }
 
     /** AFFICHAGE MATRICE DE CONFUSION **/
-    for (int j = 0; j < nbmots; ++j) {
+   /* for (int j = 0; j < nbmots; ++j) {
         for (int i = 0; i < nbmots; ++i)
             cout << matriceConfusion[i][j] << " ";
         cout<<""<<endl;
     }
+    float tauxReco = (nbMotsRec/nbmots)/nbLocuteur;
+    cout<<"Taux de reconnaissance : " <<tauxReco*100<< "%"<<endl;
+    */
 
     return 0;
 }

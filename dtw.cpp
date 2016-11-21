@@ -64,13 +64,18 @@ float dtw(int n_ck, int n_cunk, int dim_mfcc, float *c_k, float *c_unk) {
         }
     }
 
-    for (int i = 0; i < _J; i++) {
+   /*
+    * AFFICHAGE DTW
+    * for (int i = 0; i < _J; i++) {
 
         for (int j = 0; j < _I; ++j) {
-            cout << g[i + j * _J] << " ";
+            if(g[i + j * _J] == 65535)
+                cout <<"INF ";
+            else
+            cout << g[i + j * _J] << "  ";
         }
         cout << endl;
-    }
+    }*/
 
     return g[(_I * _J) - 1] / (n_ck + n_cunk);
 }
